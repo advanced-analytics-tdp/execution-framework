@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="9c60912a-b4c9-4da2-af68-de1210006712" name="sshConfig://clopezh@10.4.88.36:22/home/clopezh/anaconda3/envs/dev_env/bin/python">
+        <fileTransfer accessType="SFTP" host="10.4.88.36" port="22" sshConfigId="05865e33-2605-415b-86ea-716e0b8a4136" sshConfig="clopezh@10.4.88.36:22" />
+      </webServer>
+    </option>
+  </component>
+</project>
