@@ -56,5 +56,8 @@ def fastload_dataframe(database_connection: teradatasql.TeradataConnection, df: 
     logger.info('Fastload execution finished')
 
     # Commit results
+    logger.info('Commiting operation')
     database_connection.commit()
     cursor.execute('{fn teradata_nativesql}{fn teradata_autocommit_on}')
+
+    logger.info('Dataframe successfully upload')
