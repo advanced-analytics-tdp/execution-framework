@@ -7,10 +7,10 @@ from teradatasql import TeradataConnection
 from typing import Tuple, Union, Optional
 from pyhive import hive
 
-from utils.date_utils import generate_date_range, subtract_units_time, last_day_of_month
-from utils.stats_utils import check_outliers, compute_interquartile_range
-from schema_validation import validate_data_source_schema
-from utils.db_utils import read_query_to_df
+from execution_framework.utils.date_utils import generate_date_range, subtract_units_time, last_day_of_month
+from execution_framework.utils.stats_utils import check_outliers, compute_interquartile_range
+from execution_framework.schema_validation import validate_data_source_schema
+from execution_framework.utils.db_utils import read_query_to_df
 
 
 logger = logging.getLogger('DATA VALIDATION')

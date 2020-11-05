@@ -1,8 +1,8 @@
-from utils.db_utils import execute_db_statement
-from pyhive import hive
 import logging
 import re
 
+from execution_framework.utils.db_utils import execute_db_statement
+from pyhive import hive
 
 logger = logging.getLogger('HIVE SCRIPT')
 

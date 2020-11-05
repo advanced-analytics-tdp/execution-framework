@@ -3,7 +3,7 @@ import teradatasql
 import logging
 
 
-from utils.common_utils import separate_schema_table
+from execution_framework.utils.common_utils import separate_schema_table
 from typing import Union
 from pyhive import hive
 

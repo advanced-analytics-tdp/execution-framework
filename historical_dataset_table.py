@@ -5,9 +5,9 @@ import logging
 from typing import Union
 from pyhive import hive
 
-from utils.db_utils import read_table_to_df, check_table_exists
-from utils.common_utils import separate_schema_table
-from utils.date_utils import last_day_of_month
+from execution_framework.utils.db_utils import read_table_to_df, check_table_exists
+from execution_framework.utils.common_utils import separate_schema_table
+from execution_framework.utils.date_utils import last_day_of_month
 
 
 logger = logging.getLogger('DATASET TABLE')

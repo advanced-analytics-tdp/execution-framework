@@ -2,8 +2,8 @@ import pandas as pd
 import teradatasql
 import logging
 
-from utils.common_utils import get_df_py_dtypes
-from utils.db_utils import create_teradata_table
+from execution_framework.utils.common_utils import get_df_py_dtypes
+from execution_framework.utils.db_utils import create_teradata_table
 
 
 logger = logging.getLogger('FASTLOAD TERADATA')

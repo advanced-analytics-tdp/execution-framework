@@ -7,8 +7,8 @@ import yaml
 import pickle
 import logging
 
-from utils.common_utils import read_variables
-from utils.stats_utils import discretize_data
+from execution_framework.utils.common_utils import read_variables
+from execution_framework.utils.stats_utils import discretize_data
 from typing import Union
 
 

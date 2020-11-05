@@ -1,8 +1,8 @@
 import teradatasql
 import logging
 
-from utils.db_utils import execute_db_statement, check_data_exits_in_table
-from utils.date_utils import subtract_units_time
+from execution_framework.utils.db_utils import execute_db_statement, check_data_exits_in_table
+from execution_framework.utils.date_utils import subtract_units_time
 
 logger = logging.getLogger('HISTORICAL DATA INSERTION')
 
