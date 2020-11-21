@@ -260,6 +260,46 @@ def ensemble_model_replica(data: pd.DataFrame, models_data: dict, key_columns: l
     return ensemble_replica_result
 
 
+def merge_model_results(model_results: dict, key_columns: list, merge_type: str) -> pd.DataFrame:
+    """
+    Merge model results into one dataframe
+
+    :param model_results: dictionary with model results with the name of the model in the key
+    :param key_columns: identifiers like id's that aren't necessary to replicate models
+    :param merge_type: {'same_population', 'different_population'}
+    :return: merged results
+    """
+
+    if merge_type == 'same_population':
+
+        # Create variable to identify the first item of dict
+        first_item = True
+
+        for model_name, results in model_results.items():
+
+            # Don't drop key columns only for first model result
+            if first_item:
+                model_results[model_name].columns = key_columns + ['prob_' + model_name, 'groups_' + model_name]
+                first_item = False
+                continue
+
+            # Drop key columns for all model results except the first one
+            model_results[model_name].drop(key_columns, axis=1, inplace=True)
+
+            # Rename probability and group columns
+            model_results[model_name].columns = ['prob_' + model_name, 'groups_' + model_name]
+
+        merged_results = pd.concat(list(model_results.values()), axis=1)
+
+    elif merge_type == 'different_population':
+        merged_results = pd.concat(list(model_results.values())).reset_index(drop=True)
+
+    else:
+        raise NotImplementedError('Merge type supporting for now are same_population and different population')
+
+    return merged_results
+
+
 def replicate_all_models(data: pd.DataFrame, key_columns: list, conf_replica_models_path: str) -> pd.DataFrame:
     """
     Replicate all models in configuration models file
