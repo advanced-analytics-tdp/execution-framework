@@ -165,12 +165,23 @@ def read_query_to_df(database_connection: Union[teradatasql.TeradataConnection, 
         logger.error("Can't execute query. Check if it is correct", exc_info=True)
         raise
 
+    logger.debug("Finished query execution")
+
     # Fetch all results
-    results = pd.DataFrame(cursor.fetchall(), columns=[desc[0] for desc in cursor.description])
+    logger.debug("Starting to fetch query results")
+
+    results = cursor.fetchall()
 
     logger.debug('Finished fetching all query results')
 
-    return results
+    # Transform into dataframe
+    logger.debug('Transforming result into dataframe')
+
+    df_results = pd.DataFrame(results, columns=[desc[0] for desc in cursor.description])
+
+    logger.debug('Dataframe was successfully created')
+
+    return df_results
 
 
 def read_table_to_df(table_name: str, database_connection: Union[teradatasql.TeradataConnection, hive.Connection],
