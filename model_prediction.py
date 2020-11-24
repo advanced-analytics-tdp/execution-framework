@@ -275,6 +275,8 @@ def merge_model_results(model_results: dict, key_columns: list, merge_type: str)
         # Create variable to identify the first item of dict
         first_item = True
 
+        logger.info("Merging model results of the same population")
+
         for model_name, results in model_results.items():
 
             # Don't drop key columns only for first model result
@@ -292,6 +294,9 @@ def merge_model_results(model_results: dict, key_columns: list, merge_type: str)
         merged_results = pd.concat(list(model_results.values()), axis=1)
 
     elif merge_type == 'different_population':
+
+        logger.info("Merging model results of different populations")
+
         merged_results = pd.concat(list(model_results.values())).reset_index(drop=True)
 
     else:
@@ -318,7 +323,7 @@ def replicate_all_models(data: pd.DataFrame, key_columns: list, conf_replica_mod
     results = dict()
 
     # Replicate all models
-    for model_name, model_data in conf_replica_models.items():
+    for model_name, model_data in conf_replica_models['models'].items():
 
         logger.info(f'Starting replica of {model_name} model')
 
@@ -344,6 +349,7 @@ def replicate_all_models(data: pd.DataFrame, key_columns: list, conf_replica_mod
 
     # Union all dataframe
     logger.info('Union all dataframes with results')
-    total_replica_results = pd.concat(list(results.values())).reset_index(drop=True)
+    merge_type = conf_replica_models.get('merge_type', 'different_population')
+    total_replica_results = merge_model_results(results, key_columns, merge_type)
 
     return total_replica_results
