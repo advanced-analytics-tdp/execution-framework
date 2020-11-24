@@ -45,6 +45,23 @@ def get_df_py_dtypes(df: pd.DataFrame) -> dict:
     return metadata_dict
 
 
+def read_configuration_file(file_path: str):
+    """
+    Read  configuration file in YAML format
+
+    :param file_path: path of configuration file
+    :return: configuration parameters
+    """
+    try:
+        with open(file_path) as f:
+            conf_file = yaml.load(f, Loader=yaml.FullLoader)
+    except Exception:
+        logger.error("Can't read variables from YAML file in path '{}'".format(file_path), exc_info=True)
+        raise
+
+    return conf_file
+
+
 def read_variables(file_path: str) -> list:
     """
     Read variables from YAML file
@@ -52,14 +69,9 @@ def read_variables(file_path: str) -> list:
     :param file_path: path of YAML file with names
     :return: list with lowercase variable names
     """
-    try:
-        with open(file_path) as f:
-            variables = yaml.load(f, Loader=yaml.FullLoader)
 
-        variables = [var.lower() for var in variables]
-    except Exception:
-        logger.error("Can't read variables from YAML file in path '{}'".format(file_path), exc_info=True)
-        raise
+    variables = read_configuration_file(file_path)
+    variables = [var.lower() for var in variables]
 
     return variables
 
