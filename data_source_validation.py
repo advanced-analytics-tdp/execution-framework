@@ -1,7 +1,6 @@
 import datetime as dt
 import pandas as pd
 import logging
-import yaml
 
 from teradatasql import TeradataConnection
 from typing import Tuple, Union, Optional
@@ -10,6 +9,7 @@ from pyhive import hive
 from execution_framework.utils.date_utils import generate_date_range, subtract_units_time, last_day_of_month
 from execution_framework.utils.stats_utils import check_outliers, compute_interquartile_range
 from execution_framework.schema_validation import validate_data_source_schema
+from execution_framework.utils.common_utils import read_configuration_file
 from execution_framework.utils.db_utils import read_query_to_df
 
 
@@ -360,14 +360,9 @@ def check_all_data_sources(data_sources_conf_file: str, replica_date: str,
         raise ValueError('Provide at least one database connection : Teradata or Hive')
 
     # Read data source yaml file
-    try:
-        with open(data_sources_conf_file) as f:
-            data_sources = yaml.load(f, Loader=yaml.FullLoader)
-    except Exception:
-        logger.error(f"Can't read yaml file in '{data_sources_conf_file}'", exc_info=True)
-        raise
+    data_sources = read_configuration_file(data_sources_conf_file)
 
-    # Validate values of json file
+    # Validate schema of data source configuration file
     schema_status = validate_data_source_schema(data_sources)
 
     if schema_status:
