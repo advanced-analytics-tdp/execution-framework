@@ -1,10 +1,10 @@
 import pandas as pd
 import numpy as np
+import datetime
 import logging
 import yaml
 
 from typing import List
-from datetime import date
 
 logger = logging.getLogger('COMMON UTILS')
 
@@ -23,24 +23,26 @@ def get_df_py_dtypes(df: pd.DataFrame) -> dict:
     # Measurer to get max length of object columns
     measurer = np.vectorize(len)
 
+    # Get first row of dataframe to find out the datatype
+    column_names = df.columns
+    values = df.head(1).values.tolist()[0]
+
     # Iterate over all columns
-    for column in df.columns:
+    for name, value in zip(column_names, values):
 
-        # Get first element of column to know data type
-        element = df[column].head(1).values.tolist()[0]
-
-        if isinstance(element, str):
-            max_column_length = measurer(df[column].values).max(axis=0)
-            metadata_dict[column] = ('str', max_column_length)
-        elif isinstance(element, int):
-            metadata_dict[column] = 'int'
-        elif isinstance(element, float):
-            metadata_dict[column] = 'float'
-        elif isinstance(element, date):
-            metadata_dict[column] = 'date'
+        if type(value) is str:
+            max_column_length = measurer(df[name].values).max(axis=0)
+            metadata_dict[name] = ('str', max_column_length)
+        elif type(value) is int:
+            metadata_dict[name] = 'int'
+        elif type(value) is float:
+            metadata_dict[name] = 'float'
+        elif type(value) is datetime.date:
+            metadata_dict[name] = 'date'
         else:
-            raise NotImplementedError('Data types supporting for now : str, int , float and date.'
-                                      ' {} is not supported yet'.format(type(element)))
+            raise NotImplementedError(f'{type(value)} is not supported yet. Data types supporting for now : str, int ,'
+                                      f" float and date. Please change '{name}' column datatype or contact developer"
+                                      f' to support a new data type.')
 
     return metadata_dict
 
