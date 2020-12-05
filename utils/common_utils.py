@@ -80,10 +80,10 @@ def read_variables(file_path: str) -> list:
 
 def separate_schema_table(name: str, dbms: str) -> List[str]:
     """
-    Separate databse or schema from table name in case there is no schema or database function assigns the default
+    Separate database or schema from table name in case there is no schema or database function assigns the default
     depending on dbms. dbi_min for Teradata and dev_perm for Hive
 
-    :param dbms: datawarehouse name
+    :param dbms: data warehouse name
     :param name: name with table and schema
     :return:
     """
