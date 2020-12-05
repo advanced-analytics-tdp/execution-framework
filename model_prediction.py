@@ -3,11 +3,10 @@ import lightgbm as lgb
 import pandas as pd
 import numpy as np
 
-import yaml
 import pickle
 import logging
 
-from execution_framework.utils.common_utils import read_variables
+from execution_framework.utils.common_utils import read_variables, read_configuration_file
 from execution_framework.utils.stats_utils import discretize_data
 from typing import Union
 
@@ -316,8 +315,7 @@ def replicate_all_models(data: pd.DataFrame, key_columns: list, conf_replica_mod
     """
 
     # Read configuration parameters from yaml file
-    with open(conf_replica_models_path) as f:
-        conf_replica_models = yaml.load(f, Loader=yaml.FullLoader)
+    conf_replica_models = read_configuration_file(conf_replica_models_path)
 
     # Dictionary with all results of models
     results = dict()
