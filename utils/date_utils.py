@@ -73,3 +73,30 @@ def generate_date_range(start_date: str, final_date: str, frequency: str, day_mo
         raise NotImplementedError('Frequencies supporting for now: monthly and daily')
 
     return range_dt
+
+
+def get_current_date_str_format(date_format: str) -> str:
+    """
+    Get current date according given format
+
+    :param date_format: date format to convert the date to string
+    :return: date in string format
+    """
+
+    str_current_date = dt.datetime.today().strftime(date_format)
+
+    return str_current_date
+
+
+def literal_to_date(date_str: str):
+    """
+    Transform string to date
+
+    :param date_str: name of the date
+    :return:
+    """
+
+    if date_str == 'current_day':
+        return get_current_date_str_format('%Y-%m-%d')
+    else:
+        raise NotImplementedError(f"{date_str} not supported yet. Dates supporting for now : current_day")
