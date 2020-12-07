@@ -211,7 +211,7 @@ def check_table_exists(dbms: str, database_name: str, table_name: str,
     """
     Verify if table exists in Teradata or Hive
 
-    :param dbms: datawarehouse name
+    :param dbms: data warehouse name
     :param database_name: database name
     :param table_name: table name
     :param database_connection: Teradata or Hive connection
@@ -236,7 +236,7 @@ def check_table_exists(dbms: str, database_name: str, table_name: str,
     else:
         raise NotImplementedError('Data warehouses supporting by now : hive and teradata')
 
-    # Creck if result is empty
+    # Check if result is empty
     result = read_query_to_df(database_connection, query)
     table_exists = False if result.empty else True
 
@@ -296,7 +296,7 @@ def create_teradata_table(database_connection: teradatasql.TeradataConnection, m
         # Check if index columns exists in metadata columns of table
         for index_column in primary_index_columns:
             if index_column not in metadata_columns:
-                raise Exception(f"{index_column} doesn't exists in metadata_columns."
+                raise Exception(f"{index_column} does not exists in metadata_columns."
                                 f" Please check primary index column name(s) ")
 
         create_query = create_query + f" PRIMARY INDEX({', '.join(primary_index_columns)})"
