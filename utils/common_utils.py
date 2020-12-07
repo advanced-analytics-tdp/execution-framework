@@ -100,3 +100,17 @@ def separate_schema_table(name: str, dbms: str) -> List[str]:
             return ['dev_perm', name]
         else:
             raise NotImplementedError('Data warehouses supporting by now : hive and teradata')
+
+
+def save_string_to_file(string: str, filepath: str):
+    """
+    Save string to plain text file
+
+    :param string: variable to save
+    :param filepath: path
+    :return:
+    """
+
+    text_file = open(filepath, 'w')
+    text_file.write(string)
+    text_file.close()
