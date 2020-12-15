@@ -2,10 +2,22 @@ import great_expectations as ge
 import pandas as pd
 import logging
 
+from pathlib import Path
+
 from great_expectations.core import ExpectationSuiteValidationResult
+from great_expectations.render.view import DefaultJinjaPageView
+from great_expectations.render.renderer import ValidationResultsPageRenderer
+
+from execution_framework.utils.date_utils import get_current_date_str_format
 
 
 logger = logging.getLogger('DATA QUALITY')
+
+
+def _generate_html(obj, renderer, filename):
+    document_model = renderer.render(obj)
+    with open(filename, "w") as writer:
+        writer.write(DefaultJinjaPageView().render(document_model))
 
 
 def logging_validation_results(results: ExpectationSuiteValidationResult):
@@ -36,7 +48,7 @@ def logging_validation_results(results: ExpectationSuiteValidationResult):
             logger.info(f"Expectation in {expectation_column} was success and its observed value is {observed_value}")
         else:
             logger.error(f"Expectation in {expectation_column} was a failure and its observed value is"
-                         f" {observed_value}, please check the report for more details")
+                         f" {observed_value:.5f}, please check the report for more details")
 
 
 def get_validation_results(df: pd.DataFrame, expectation_suite: str) -> ExpectationSuiteValidationResult:
@@ -52,17 +64,19 @@ def get_validation_results(df: pd.DataFrame, expectation_suite: str) -> Expectat
     ge_df = ge.from_pandas(df)
 
     # Getting validation results
-    validation_results = ge_df.validate(expectation_suite=expectation_suite)
+    validation_results = ge_df.validate(expectation_suite=expectation_suite, result_format='COMPLETE')
 
     return validation_results
 
 
-def validate_data_quality(df: pd.DataFrame, expectation_suite: str):
+def validate_data_quality(df: pd.DataFrame, expectation_suite: str, throw_exception: bool, report_path: str):
     """
     Make data validation given a expectation suite
 
     :param df: dataframe to validate data quality
     :param expectation_suite: path to expectation suite
+    :param throw_exception: True throws an exception when result is unsuccessfull
+    :param report_path: path to save validation results report
     :return:
     """
 
@@ -73,8 +87,21 @@ def validate_data_quality(df: pd.DataFrame, expectation_suite: str):
     # Logging validation results details
     logging_validation_results(validation_results)
 
+    # Generate report name and path
+    current_date = get_current_date_str_format('%Y%m%d%H%M%S')
+    folder = Path(report_path)
+    report_filename = f'validation_results_{current_date}.html'
+    report_filepath = folder / report_filename
+
+    # Save report
+    logger.info(f"Saving validation results report in {report_filepath}")
+    _generate_html(validation_results, ValidationResultsPageRenderer(), report_filepath)
+
     # Throw an error if it's neccessary
     if validation_results.success:
         logger.info("All expectations were successfull")
     else:
-        raise Exception("Bad data quality, check logs and reports for more details")
+        logger.error("Some expectations failed")
+
+        if throw_exception:
+            raise Exception("Bad data quality, check logs and reports for more details")
