@@ -7,51 +7,69 @@ import pickle
 import logging
 
 from execution_framework.utils.common_utils import read_variables, read_configuration_file
+from execution_framework.utils.preprocess_utils import normalize_data
 from execution_framework.utils.stats_utils import discretize_data
+
 from typing import Union
+from sklearn.cluster import KMeans
 
 
 logger = logging.getLogger('MODEL PREDICTION')
 
+# Declare model types
+models = Union[xgb.Booster, lgb.LGBMClassifier, KMeans]
 
-def load_model(trained_model_path: str, model_estimator: str) -> Union[xgb.Booster, lgb.LGBMClassifier]:
+
+def load_model(trained_model_path: str, model_type: str, model_estimator: str) -> models:
     """
     Read trained object model from disk
 
     :param trained_model_path: path of trained model
-    :param model_estimator: estimator of model. e.g. lightgbm, xgboost
+    :param model_type: classification or clustering
+    :param model_estimator: estimator of model. e.g. lightgbm, xgboost, kmeans
     :return: model object
     """
 
     logger.info("Loading trained model object from '{}'".format(trained_model_path))
 
-    try:
+    if model_type == 'classification':
 
         if model_estimator == 'lightgbm':
-            with open(trained_model_path, 'rb') as model:
-                trained_model = pickle.load(model)
+            trained_model = pickle.load(open(trained_model_path, 'rb'))
 
         elif model_estimator == 'xgboost':
             trained_model = xgb.Booster(model_file=trained_model_path)
 
         else:
-            logger.error(f"{model_estimator} model is not supported yet, please contact developer")
-            raise NotImplementedError('Model types supporting for now: lightgbm and xgboost')
+            logger.error(f"{model_estimator} model is not supported in classification yet")
+            raise NotImplementedError('Model estimator supporting in classification for now: lightgbm and xgboost')
 
-    except Exception:
-        logger.error(f"Can't load trained model file from '{trained_model_path}'", exc_info=True)
-        raise
+    elif model_type == 'clustering':
+
+        if model_estimator == 'kmeans':
+            trained_model = pickle.load(open(trained_model_path, 'rb'))
+        else:
+            logger.error(f"{model_estimator} model is not supported in clustering yet")
+            raise NotImplementedError('Model estimator supporting in clustering for now: kmeans')
+
+    else:
+        logger.error(f"{model_type} type model is not supported yet")
+        raise NotImplementedError('Model types supporting for now: classification and clustering')
 
     return trained_model
 
 
-def prepare_df_to_predict(data: pd.DataFrame, key_columns: list, model_columns: list = None) -> pd.DataFrame:
+def prepare_df_to_predict(data: pd.DataFrame, key_columns: list, model_columns: list = None, normalize: bool = False,
+                          normalize_method: str = 'robust') -> Union[pd.DataFrame, np.ndarray]:
     """
     Prepare dataframe with necessary columns and filters to replicate the model
 
     :param data: dataframe with all variables
     :param key_columns: identifiers like id's that aren't necessary to replicate model
     :param model_columns: column names in the same order in which the model was trained needed to predict
+    :param normalize: when set to True, it transforms the numeric features by scaling them to a given range before
+    predict
+    :param normalize_method: defines the method for scaling.
     :return: dataframe prepared to replicate model
     """
 
@@ -82,16 +100,21 @@ def prepare_df_to_predict(data: pd.DataFrame, key_columns: list, model_columns: 
             logger.error("Can't select models columns from data", exc_info=True)
             raise
 
+    # Normalize data if it's necessary
+    if normalize:
+        replica_data = normalize_data(replica_data, normalize_method)
+        replica_data = replica_data.astype('float32')  # temporary
+
     return replica_data
 
 
-def predict_model(trained_model: Union[xgb.Booster, lgb.LGBMClassifier], model_estimator: str,
-                  data: pd.DataFrame) -> np.ndarray:
+def predict_model(trained_model: models, model_type: str, model_estimator: str, data: pd.DataFrame) -> np.ndarray:
     """
     Predict using trained model
 
     :param trained_model: model object
-    :param model_estimator: model type e.g. xgboost or lightgbm
+    :param model_type: classification or clustering
+    :param model_estimator: estimator of model. e.g. lightgbm, xgboost, kmeans
     :param data: dataframe with variables to replicate model
     :return: probabilities resulting from the prediction
     """
@@ -100,58 +123,107 @@ def predict_model(trained_model: Union[xgb.Booster, lgb.LGBMClassifier], model_e
 
     try:
 
-        if model_estimator == 'lightgbm':
-            probabilities = trained_model.predict_proba(data)
-            probabilities = probabilities[:, 1]
+        if model_type == 'classification':
 
-        elif model_estimator == 'xgboost':
-            replica_data_dmatrix = xgb.DMatrix(data)
-            probabilities = trained_model.predict(replica_data_dmatrix)
+            if model_estimator == 'lightgbm':
+                probabilities = trained_model.predict_proba(data)
+                model_results = probabilities[:, 1]
+
+            elif model_estimator == 'xgboost':
+                replica_data_dmatrix = xgb.DMatrix(data)
+                model_results = trained_model.predict(replica_data_dmatrix)
+
+            else:
+                logger.error(f"{model_estimator} model is not supported in classification yet")
+                raise NotImplementedError('Model estimator supporting in classification for now: lightgbm and xgboost')
+
+        elif model_type == 'clustering':
+
+            if model_estimator == 'kmeans':
+                model_results = trained_model.predict(data)
+            else:
+                logger.error(f"{model_estimator} model is not supported in clustering yet")
+                raise NotImplementedError('Model estimator supporting in clustering for now: kmeans')
 
         else:
-            logger.error(f"{model_estimator} model is not supported yet, please contact developer")
-            raise NotImplementedError('Model types supporting for now: lightgbm and xgboost')
+            logger.error(f"{model_type} type model is not supported yet")
+            raise NotImplementedError('Model types supporting for now: classification and clustering')
 
     except Exception:
-        logger.error("Can't predict model in new data, please check data quality", exc_info=True)
+        logger.error(f"Can't predict {model_estimator} model in new data, please check data quality", exc_info=True)
         raise
 
     logger.info('Model prediction finished')
 
-    return probabilities
+    return model_results
 
 
-def common_steps_replica(input_samples: pd.DataFrame, key_columns: list, trained_model_path: str, model_estimator: str,
-                         model_columns_path: str = None) -> np.ndarray:
+def common_steps_replica(input_samples: pd.DataFrame, key_columns: list, trained_model_path: str, model_type: str,
+                         model_estimator: str, model_columns_path: str, normalize: bool = False,
+                         normalize_method: str = 'robust') -> np.ndarray:
     """
     Execute common steps to make single model replica and ensemble model replica
 
     :param input_samples: input samples with all necessary variables to replicate model
     :param key_columns: identifiers like id's that aren't necessary to replicate model
     :param trained_model_path: path of trained model
-    :param model_estimator: estimator of model. e.g. lightgbm, xgboost
+    :param model_type: classification or clustering
+    :param model_estimator: estimator of model. e.g. lightgbm, xgboost, kmeans
     :param model_columns_path: column names in the same order in which the model was trained
+    :param normalize: when set to True, it transforms the numeric features by scaling them to a given range before
+    predict
+    :param normalize_method: defines the method for scaling.
     :return:
     """
     # Load trained file model
-    trained_model = load_model(trained_model_path, model_estimator)
+    trained_model = load_model(trained_model_path, model_type, model_estimator)
 
     # Read variables to replicate the model
     model_columns = read_variables(model_columns_path)
 
     # Selecting correct columns to replicate model
-    replica_data = prepare_df_to_predict(input_samples, key_columns, model_columns)
+    replica_data = prepare_df_to_predict(input_samples, key_columns, model_columns, normalize, normalize_method)
 
     # Predict model in new data
-    probabilities = predict_model(trained_model, model_estimator, replica_data)
+    model_results = predict_model(trained_model, model_type, model_estimator, replica_data)
 
-    return probabilities
+    return model_results
 
 
-def single_model_replica(data: pd.DataFrame, key_columns: list, trained_model_path: str, model_estimator: str,
-                         filters: str = None, model_columns_path: str = None, add_group_column: bool = True,
+def create_group_column(model_results: np.ndarray, model_type: str, group_columns_type: str, quantile: int,
+                        fixed_intervals: list, group_labels: Union[list, dict]) -> pd.Series:
+    """
+    Create group column in each type of model : classification and clustering
+
+    :param model_results: output of predict model
+    :param model_type: classification or clustering
+    :param group_columns_type: type of group column e.g. quantile or fixed intervals. Only valid for classification
+    :param quantile: number of quantiles. 10 for deciles, 4 for quartiles. If None don't create new column
+    :param fixed_intervals: edges to create column with groups based on probabilities. If None don't create new column
+    :param group_labels: used as labels for the resulting group column
+    :return:
+    """
+
+    logger.info(f'Creating group column for {model_type} model')
+
+    if model_type == 'classification':
+        groups = discretize_data(model_results, group_columns_type, quantile, fixed_intervals, group_labels)
+
+    elif model_type == 'clustering':
+        groups = pd.Series(model_results).map(group_labels)
+
+    else:
+        logger.error(f"{model_type} type model is not supported yet")
+        raise NotImplementedError('Model types supporting for now: classification and clustering')
+
+    return groups
+
+
+def single_model_replica(data: pd.DataFrame, key_columns: list, trained_model_path: str, model_type: str,
+                         model_estimator: str, filters: str = None, model_columns_path: str = None,
+                         normalize: bool = False, normalize_method: str = 'robust', add_group_column: bool = True,
                          group_columns_type: str = 'quantile', quantile: int = 10, fixed_intervals: list = None,
-                         labels: Union[list, np.ndarray] = None) -> pd.DataFrame:
+                         group_labels: Union[list, np.ndarray, dict] = None) -> pd.DataFrame:
     """
     Model prediction for all samples in replica data
     If model_columns is not specified it takes all columns except key_columns to replicate model
@@ -159,22 +231,29 @@ def single_model_replica(data: pd.DataFrame, key_columns: list, trained_model_pa
     :param data: all necessary variables to replicate model
     :param key_columns: identifiers like id's that aren't necessary to replicate model
     :param trained_model_path: path of trained model
+    :param model_type: classification or clustering
     :param model_estimator: estimator of model. e.g. lightgbm, xgboost
     :param filters: filters: filters to query data
     :param model_columns_path: column names in the same order in which the model was trained
+    :param normalize: when set to True, it transforms the numeric features by scaling them to a given range before
+    predict
+    :param normalize_method: defines the method for scaling.
     :param add_group_column: add rank column based on probabilities
     :param group_columns_type: type of group column e.g. quantile or fixed intervals
     :param quantile: number of quantiles. 10 for deciles, 4 for quartiles. If None don't create new column
     :param fixed_intervals: edges to create column with groups based on probabilities. If None don't create new column
-    :param labels: used as labels for the resulting column
+    :param group_labels: used as labels for the resulting group column
     :return: dataframe with probabilities and key columns
     """
 
     # Filter dataframe if it's necessary
     if filters is not None:
+
         logger.info(f'Applying filters to dataframe : {filters}')
         filtered_data = data.query(filters).reset_index(drop=True)
-        logger.debug(f'New dataframe shape is {filtered_data.shape}')
+
+        logger.info(f'New dataframe shape is {filtered_data.shape}')
+
     else:
         filtered_data = data
 
@@ -182,20 +261,20 @@ def single_model_replica(data: pd.DataFrame, key_columns: list, trained_model_pa
     replica_result = filtered_data[key_columns].copy()
 
     # Execute common steps replica
-    probabilities = common_steps_replica(input_samples=filtered_data,
-                                         key_columns=key_columns,
-                                         trained_model_path=trained_model_path,
-                                         model_estimator=model_estimator,
-                                         model_columns_path=model_columns_path)
+    model_results = common_steps_replica(input_samples=filtered_data, key_columns=key_columns,
+                                         trained_model_path=trained_model_path, model_type=model_type,
+                                         model_estimator=model_estimator, model_columns_path=model_columns_path,
+                                         normalize=normalize, normalize_method=normalize_method)
 
     # Add replica column to results
-    replica_result['final_prob'] = probabilities
+    replica_result['final_prob'] = model_results
 
     # Add group column
     if add_group_column:
-        logger.info(f'Add group column type {group_columns_type}')
-        groups = discretize_data(probabilities, group_columns_type, quantile, fixed_intervals, labels)
-        replica_result['groups'] = groups
+
+        logger.info("Adding column group to model result")
+        replica_result['groups'] = create_group_column(model_results, model_type, group_columns_type, quantile,
+                                                       fixed_intervals, group_labels)
 
     return replica_result
 
@@ -231,9 +310,9 @@ def ensemble_model_replica(data: pd.DataFrame, models_data: dict, key_columns: l
         logger.info(f'Making replica of {model_name} model')
 
         # Execute common steps replica
-        probabilities = common_steps_replica(input_samples=filtered_data,
-                                             key_columns=key_columns,
+        probabilities = common_steps_replica(input_samples=filtered_data, key_columns=key_columns,
                                              trained_model_path=model_data['model_path'],
+                                             model_type=model_data['model_type'],
                                              model_estimator=model_data['model_estimator'],
                                              model_columns_path=model_data['model_variables'])
 
@@ -331,17 +410,19 @@ def replicate_all_models(data: pd.DataFrame, key_columns: list, conf_replica_mod
                                                       key_columns=key_columns)
             results[model_name] = ensemble_results[key_columns + ['final_prob', 'groups']].copy()
         else:
-            results[model_name] = single_model_replica(data=data,
-                                                       key_columns=key_columns,
+            results[model_name] = single_model_replica(data=data, key_columns=key_columns,
                                                        trained_model_path=model_data['model_path'],
+                                                       model_type=model_data['model_type'],
                                                        model_estimator=model_data['model_estimator'],
                                                        filters=model_data.get('filter_rows', {}).get('query'),
                                                        model_columns_path=model_data['model_variables'],
+                                                       normalize=model_data.get('normalize_data'),
+                                                       normalize_method=model_data.get('normalize_method'),
                                                        add_group_column=model_data.get('add_group_column'),
                                                        group_columns_type=model_data.get('group_column_type'),
                                                        quantile=model_data.get('quantile'),
                                                        fixed_intervals=model_data.get('probability_cuts'),
-                                                       labels=model_data.get('labels'))
+                                                       group_labels=model_data.get('labels'))
 
     logger.info('Replication of all models finished ')
 
