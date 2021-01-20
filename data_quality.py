@@ -36,19 +36,19 @@ def logging_validation_results(results: ExpectationSuiteValidationResult):
     logger.info(f"Success percent : {statistics['success_percent']:.2f} %")
 
     # Log individual results
-    ind_results = results.results
-
-    for ind_result in ind_results:
-
-        expectation_column = ind_result.expectation_config.kwargs['column']
-        observed_value = ind_result.result['observed_value']
-        success = ind_result.success
-
-        if success:
-            logger.info(f"Expectation in {expectation_column} was success and its observed value is {observed_value}")
-        else:
-            logger.error(f"Expectation in {expectation_column} was a failure and its observed value is"
-                         f" {observed_value:.5f}, please check the report for more details")
+    # ind_results = results.results
+    #
+    # for ind_result in ind_results:
+    #
+    #     expectation_column = ind_result.expectation_config.kwargs['column']
+    #     observed_value = ind_result.result['observed_value']
+    #     success = ind_result.success
+    #
+    #     if success:
+    #         logger.info(f"Expectation in {expectation_column} was success and its observed value is {observed_value}")
+    #     else:
+    #         logger.error(f"Expectation in {expectation_column} was a failure and its observed value is"
+    #                      f" {observed_value:.5f}, please check the report for more details")
 
 
 def get_validation_results(df: pd.DataFrame, expectation_suite: str) -> ExpectationSuiteValidationResult:
@@ -101,7 +101,7 @@ def validate_data_quality(df: pd.DataFrame, expectation_suite: str, throw_except
     if validation_results.success:
         logger.info("All expectations were successfull")
     else:
-        logger.error("Some expectations failed")
+        logger.error("Some expectations failed, check validation report for more details")
 
         if throw_exception:
             raise Exception("Bad data quality, check logs and reports for more details")
