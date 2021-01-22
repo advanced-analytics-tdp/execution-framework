@@ -87,7 +87,7 @@ def create_partition_objects(data: Union[PandasDataset, DataFrame], key_columns:
     return partitions
 
 
-def make_distributional_expectations(data: Union[PandasDataset, DataFrame], key_columns: list, partitions: dict):
+def make_distributional_expectations(data: PandasDataset, key_columns: list, partitions: dict):
     """
     Make distributional expectation for all columns in dataframe using kl divergence
 
@@ -115,3 +115,22 @@ def make_distributional_expectations(data: Union[PandasDataset, DataFrame], key_
             # Log validation results
             logger.info(f"Validation success is {result.success} and observed kl divergence "
                         f"is {result.result['observed_value']}")
+
+
+def make_data_type_expectations(data: PandasDataset):
+    """
+    Make data type expectations for all column in dataset
+
+    :param data: dataframe to make data type expectations
+    :return:
+    """
+
+    # Iterate over all columns
+    for column_name in data.columns:
+
+        logger.info(f"Making data type expectation of {column_name}")
+
+        result = data.expect_column_values_to_be_of_type(column=column_name, type_=data[column_name].dtype.name)
+
+        # Log validation results
+        logger.info(f"Validation success is {result.success} and observed value is {result.result['observed_value']}")
