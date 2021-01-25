@@ -30,8 +30,10 @@ def get_df_py_dtypes(df: pd.DataFrame) -> dict:
     # Iterate over all columns
     for name, value in zip(column_names, values):
 
+        logger.debug(f'Column {name} is processing')
+
         if type(value) is str:
-            max_column_length = measurer(df[name].values).max(axis=0)
+            max_column_length = measurer(df[name].dropna().values).max(axis=0)
             metadata_dict[name] = ('str', max_column_length)
         elif type(value) is int:
             metadata_dict[name] = 'int'
