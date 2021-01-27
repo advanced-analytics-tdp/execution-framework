@@ -69,7 +69,8 @@ def get_validation_results(df: pd.DataFrame, expectation_suite: str) -> Expectat
     return validation_results
 
 
-def validate_data_quality(df: pd.DataFrame, expectation_suite: str, throw_exception: bool, report_path: str):
+def validate_data_quality(df: pd.DataFrame, expectation_suite: str, throw_exception: bool, report_path: str,
+                          prefix: str):
     """
     Make data validation given a expectation suite
 
@@ -77,6 +78,7 @@ def validate_data_quality(df: pd.DataFrame, expectation_suite: str, throw_except
     :param expectation_suite: path to expectation suite
     :param throw_exception: True throws an exception when result is unsuccessfull
     :param report_path: path to save validation results report
+    :param prefix: prefix to add to result name
     :return:
     """
 
@@ -88,9 +90,9 @@ def validate_data_quality(df: pd.DataFrame, expectation_suite: str, throw_except
     logging_validation_results(validation_results)
 
     # Generate report name and path
-    current_date = get_current_date_str_format('%Y%m%d%H%M%S')
+    current_date = get_current_date_str_format('%Y%m%d_%H%M%S')
     folder = Path(report_path)
-    report_filename = f'validation_results_{current_date}.html'
+    report_filename = f'validation_results_{prefix}_{current_date}.html'
     report_filepath = folder / report_filename
 
     # Save report
