@@ -30,7 +30,7 @@ def get_df_py_dtypes(df: pd.DataFrame) -> dict:
     # Iterate over all columns
     for name, value in zip(column_names, values):
 
-        logger.debug(f'Column {name} is processing')
+        logger.debug(f'Getting column {name} data type')
 
         if type(value) is str:
             max_column_length = measurer(df[name].dropna().values).max(axis=0)
