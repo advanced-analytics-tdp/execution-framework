@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import teradatasql
 import logging
 
@@ -139,9 +140,12 @@ def fastload_dataframe(database_connection: teradatasql.TeradataConnection, df: 
     cursor.execute('{fn teradata_nativesql}{fn teradata_autocommit_off}')
 
     logger.debug(f'Executing {fastload_statement}')
-    logger.info('Start Fastload execution')
+
+    logger.debug('Replace np.nan values in dataframe into None')
+    df = df.replace({np.nan: None})
 
     try:
+        logger.info('Start Fastload execution')
         cursor.execute(fastload_statement, df.values.tolist())
     except Exception:
         logger.error("Can't execute teradata fastload successfully", exc_info=True)
