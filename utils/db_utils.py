@@ -279,7 +279,7 @@ def create_teradata_table(database_connection: teradatasql.TeradataConnection, m
     declare_columns = ''
     for k, v in metadata_columns.items():
         if isinstance(v, tuple):
-            declare_columns += k + f' VARCHAR({v[1]}), '
+            declare_columns += k + f' VARCHAR({v[1]}) CASESPECIFIC, '
         else:
             if v == 'float':
                 declare_columns += k + ' FLOAT, '
