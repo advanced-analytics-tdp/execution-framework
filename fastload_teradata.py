@@ -146,7 +146,14 @@ def fastload_dataframe(database_connection: teradatasql.TeradataConnection, df: 
 
     try:
         logger.info('Start Fastload execution')
-        cursor.execute(fastload_statement, df.values.tolist())
+        df_n = df.shape[0]
+        chunk_size = 1000000
+        i = 1
+        for start in range(0, df_n, chunk_size):
+            tmp_df = df.iloc[start:start + chunk_size]
+            cursor.execute(fastload_statement, tmp_df.values.tolist())
+            logger.info('Execute teradata fastload batch nro: {}'.format(str(i)))
+            i = i + 1
     except Exception:
         logger.error("Can't execute teradata fastload successfully", exc_info=True)
         raise
