@@ -25,15 +25,19 @@ def get_df_py_dtypes(df: pd.DataFrame) -> dict:
 
     # Get first row of dataframe to find out the datatype
     column_names = df.columns
-    values = df.head(1).values.tolist()[0]
+    #values = df.head(1).values.tolist()[0]
 
     # Iterate over all columns
-    for name, value in zip(column_names, values):
-
+    #for name, value in zip(column_names, values):
+    for name in column_names:
+        value = df[name].dropna().values.tolist()[0]
         logger.debug(f'Getting column {name} data type')
-
+        if value is None:
+            metadata_dict[name] = ('str', 200)
         if type(value) is str:
             max_column_length = measurer(df[name].dropna().values).max(axis=0)
+            if max_column_length == 0:
+                max_column_length = 10
             metadata_dict[name] = ('str', max_column_length)
         elif type(value) is int:
             metadata_dict[name] = 'int'
