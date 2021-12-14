@@ -1,2 +1,7 @@
 .idea/*
 .idea/*.*
+*pycache*
+*egg-info*
+*.idea*
+dist/*
+tests/*
