@@ -17,7 +17,25 @@ conda create --name myenv python=3.8
 conda activate myenv
 ```
 
-4. Install **execution-framework** using the latest version on GitHub.
+4. Some packages need to be installed before 
+
+```sh
+conda install -c conda-forge pandas
+conda install -c anaconda teradata
+conda install -c temporary-recipes teradatasql
+conda install -c conda-forge pyyaml
+conda install -c conda-forge pyhive
+conda install -c conda-forge libthrift
+conda install -c conda-forge great-expectations
+conda install -c conda-forge xgboost
+conda install -c conda-forge lightgbm
+conda install -c conda-forge cerberus
+conda install -c conda-forge sasl
+conda install -c conda-forge pytz
+conda install -c conda-forge termcolor
+```
+
+5. Install **execution-framework** using the latest version on GitHub.
 
 ```sh
 python -m pip install git+https://github.com/advanced-analytics-tdp/execution-framework.git
