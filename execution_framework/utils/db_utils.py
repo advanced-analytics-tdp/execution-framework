@@ -267,13 +267,13 @@ def create_teradata_table(database_connection: teradatasql.TeradataConnection, m
     if check_table_exists('teradata', schema, table, database_connection):
         if overwrite:
             logger.info(f'Table {table} already exists in {schema} scheme, it will be deleted')
-            execute_db_statement(database_connection, f'DROP TABLE {schema}.{table_name}')
+            execute_db_statement(database_connection, f'DROP TABLE {schema}.{table}')
         else:
-            raise RuntimeError(f'Table {table_name} already exists in dbi_min schema, please choose another name'
+            raise RuntimeError(f'Table {table} already exists in {schema} schema, please choose another name'
                                f' or set overwrite parameter to True')
 
     # Generate query string to create table
-    create_query = f'CREATE MULTISET TABLE {schema}.{table_name} ( '
+    create_query = f'CREATE MULTISET TABLE {schema}.{table} ( '
 
     # Add the columns and its data types
     declare_columns = ''
