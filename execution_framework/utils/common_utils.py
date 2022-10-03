@@ -3,6 +3,9 @@ import numpy as np
 import datetime
 import logging
 import yaml
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 from typing import List
 
@@ -120,3 +123,40 @@ def save_string_to_file(string: str, filepath: str):
     text_file = open(filepath, 'w')
     text_file.write(string)
     text_file.close()
+
+def send_mail(to:list, subject:str, body: str):
+    """
+    Send a mail to some destinatary
+    :param to:
+    :param subject:
+    :param body:
+    :return:
+    """
+    msg = MIMEMultipart()
+    password = '@@bi2022'
+    msg['From'] = 'advanced.analytics.tdp@outlook.com'
+    msg['To'] = ','.join(to)
+    msg['Subject'] = subject
+    message = body
+    msg.attach(MIMEText(message, 'plain'))
+
+    # create server
+    server = smtplib.SMTP('smtp.office365.com: 587')
+    server.starttls()
+
+    # Login Credentials for sending the mail
+    server.login(msg['From'], password)
+    try:
+        # send the message via the server.
+        server.sendmail(msg['From'], msg['To'], msg.as_string())
+        server.quit()
+        print("Email sent successfully")
+        logger.info("Email sent successfully")
+    except smtplib.SMTPException as e:
+        print(e)
+        logger.error("Can't send email. Check SMTP Configuration")
+        raise
+    except Exception as e:
+        logger.error("Can't send email", exc_info=True)
+        raise
+
