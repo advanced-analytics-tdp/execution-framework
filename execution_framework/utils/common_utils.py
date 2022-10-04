@@ -135,7 +135,7 @@ def send_mail(to:list, subject:str, body: str):
     msg = MIMEMultipart()
     password = '@@bi2022'
     msg['From'] = 'advanced.analytics.tdp@outlook.com'
-    msg['To'] = ','.join(to)
+    msg['To'] = ';'.join(to)
     msg['Subject'] = subject
     message = body
     msg.attach(MIMEText(message, 'plain'))
@@ -148,7 +148,8 @@ def send_mail(to:list, subject:str, body: str):
     server.login(msg['From'], password)
     try:
         # send the message via the server.
-        server.sendmail(msg['From'], msg['To'], msg.as_string())
+        print(msg['To'])
+        server.sendmail(msg['From'], to, msg.as_string())
         server.quit()
         print("Email sent successfully")
         logger.info("Email sent successfully")
