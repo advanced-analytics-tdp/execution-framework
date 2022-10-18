@@ -124,10 +124,11 @@ def save_string_to_file(string: str, filepath: str):
     text_file.write(string)
     text_file.close()
 
-def send_mail(to:list, subject:str, body: str):
+def send_mail(to:list, cc: list = None, subject:str = None, body: str = None):
     """
     Send a mail to some destinatary
     :param to:
+    :param cc:
     :param subject:
     :param body:
     :return:
@@ -136,6 +137,7 @@ def send_mail(to:list, subject:str, body: str):
     password = '@@bi2022'
     msg['From'] = 'advanced.analytics.tdp@outlook.com'
     msg['To'] = ';'.join(to)
+    msg['CC'] = ';'.join(cc)
     msg['Subject'] = subject
     message = body
     msg.attach(MIMEText(message, 'plain'))
@@ -148,7 +150,7 @@ def send_mail(to:list, subject:str, body: str):
     server.login(msg['From'], password)
     try:
         # send the message via the server.
-        print(msg['To'])
+        # print(msg['To'])
         server.sendmail(msg['From'], to, msg.as_string())
         server.quit()
         print("Email sent successfully")
