@@ -151,7 +151,8 @@ def send_mail(to:list, cc: list = None, subject:str = None, body: str = None):
     try:
         # send the message via the server.
         # print(msg['To'])
-        server.sendmail(msg['From'], to, msg.as_string())
+        toaddrs = to + cc
+        server.sendmail(msg['From'], toaddrs, msg.as_string())
         server.quit()
         print("Email sent successfully")
         logger.info("Email sent successfully")
