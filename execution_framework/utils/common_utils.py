@@ -124,7 +124,7 @@ def save_string_to_file(string: str, filepath: str):
     text_file.write(string)
     text_file.close()
 
-def send_mail(to:list, cc: list = None, subject:str = None, body: str = None):
+def send_mail(to:list, cc: list = [], subject:str = None, body: str = None):
     """
     Send a mail to some destinatary
     :param to:
