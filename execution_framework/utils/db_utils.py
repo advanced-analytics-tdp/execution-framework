@@ -6,7 +6,7 @@ import logging
 from execution_framework.utils.common_utils import separate_schema_table
 from typing import Union
 from pyhive import hive
-
+import pymssql
 
 logging.getLogger('pyhive').setLevel(logging.CRITICAL)
 logger = logging.getLogger('DB UTILS')
@@ -56,6 +56,26 @@ def hive_connection(host: str = '10.4.88.31', port: int = 10000, database: str =
         conn = hive.Connection(host=host, port=port, database=database, configuration=configuration)
     except Exception:
         logger.error(f"Can't create Hive Connection to {host} host and {port} port")
+        raise
+
+    return conn
+
+
+def sqlserver_connection(host: str, user_name: str, password:str, database: str = 'master', **kwargs):
+
+    """
+    Create connection to SQL Server Database
+    :param host: SQL Server
+    :param user_name: SQL Server user
+    :param password: SQL Server password
+    :param database: SQL Server database. Defaul: master
+    :param kwargs: additional arguments for connect function
+    :return: SQL Server Connection
+    """
+    try:
+        conn = pymssql.connect(host, user_name, password, database, **kwargs)
+    except Exception:
+        logger.error("Can't connect to SQL Server data, check traceback", exe_info=True)
         raise
 
     return conn
