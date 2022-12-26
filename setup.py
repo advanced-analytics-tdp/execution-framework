@@ -30,5 +30,5 @@ setuptools.setup(
                       'great_expectations',
                       'xgboost',
                       'lightgbm',
-                      'cerberus'],
+                      'cerberus', 'sasl', 'pytz', 'termcolor', 'pymssql',],
 )

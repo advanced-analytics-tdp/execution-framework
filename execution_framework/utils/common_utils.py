@@ -131,6 +131,7 @@ def send_mail(to:list, cc: list = [], subject:str = None, body: str = None):
     :param cc:
     :param subject:
     :param body:
+    :param bodyhtml:
     :return:
     """
     msg = MIMEMultipart()
@@ -139,8 +140,9 @@ def send_mail(to:list, cc: list = [], subject:str = None, body: str = None):
     msg['To'] = ';'.join(to)
     msg['CC'] = ';'.join(cc)
     msg['Subject'] = subject
+
     message = body
-    msg.attach(MIMEText(message, 'plain'))
+    msg.attach(MIMEText(message, 'html'))
 
     # create server
     server = smtplib.SMTP('smtp.office365.com: 587')

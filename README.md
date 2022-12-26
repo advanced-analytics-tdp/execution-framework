@@ -33,6 +33,7 @@ conda install -c conda-forge cerberus
 conda install -c conda-forge sasl
 conda install -c conda-forge pytz
 conda install -c conda-forge termcolor
+conda install -c anaconda pymssql
 ```
 
 5. Install **execution-framework** using the latest version on GitHub.
