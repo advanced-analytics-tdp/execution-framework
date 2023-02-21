@@ -28,10 +28,10 @@ def get_df_py_dtypes(df: pd.DataFrame) -> dict:
 
     # Get first row of dataframe to find out the datatype
     column_names = df.columns
-    #values = df.head(1).values.tolist()[0]
+    # values = df.head(1).values.tolist()[0]
 
     # Iterate over all columns
-    #for name, value in zip(column_names, values):
+    # for name, value in zip(column_names, values):
     for name in column_names:
         value = df[name].dropna().values.tolist()[0]
         logger.debug(f'Getting column {name} data type')
@@ -124,7 +124,8 @@ def save_string_to_file(string: str, filepath: str):
     text_file.write(string)
     text_file.close()
 
-def send_mail(to:list, cc: list = [], subject:str = None, body: str = None):
+
+def send_mail(to: list, cc: list = [], subject: str = None, body: str = None):
     """
     Send a mail to some destinatary
     :param to:
@@ -135,8 +136,8 @@ def send_mail(to:list, cc: list = [], subject:str = None, body: str = None):
     :return:
     """
     msg = MIMEMultipart()
-    password = '@@bi2022'
-    msg['From'] = 'advanced.analytics.tdp@outlook.com'
+    password = 'your_password'
+    msg['From'] = 'Analitica Avanzada BI <usrewa1@lnxapvlcmo0003.lnx.gp.inet>'
     msg['To'] = ';'.join(to)
     msg['CC'] = ';'.join(cc)
     msg['Subject'] = subject
@@ -145,11 +146,11 @@ def send_mail(to:list, cc: list = [], subject:str = None, body: str = None):
     msg.attach(MIMEText(message, 'html'))
 
     # create server
-    server = smtplib.SMTP('smtp.office365.com: 587')
-    server.starttls()
+    server = smtplib.SMTP('10.226.5.191')
+    # server.starttls()
 
     # Login Credentials for sending the mail
-    server.login(msg['From'], password)
+    # server.login(msg['From'], password)
     try:
         # send the message via the server.
         # print(msg['To'])
@@ -165,4 +166,3 @@ def send_mail(to:list, cc: list = [], subject:str = None, body: str = None):
     except Exception as e:
         logger.error("Can't send email", exc_info=True)
         raise
-
