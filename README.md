@@ -20,20 +20,10 @@ conda activate myenv
 4. Some packages need to be installed before 
 
 ```sh
-conda install -c conda-forge pandas
-conda install -c anaconda teradata
+conda install -c conda-forge pandas pyyaml pyhive libthrift great-expectations xgboost lightgbm cerberus sasl pytz termcolor
+conda install -c anaconda teradata pymssql
 conda install -c temporary-recipes teradatasql
-conda install -c conda-forge pyyaml
-conda install -c conda-forge pyhive
-conda install -c conda-forge libthrift
-conda install -c conda-forge great-expectations
-conda install -c conda-forge xgboost
-conda install -c conda-forge lightgbm
-conda install -c conda-forge cerberus
-conda install -c conda-forge sasl
-conda install -c conda-forge pytz
-conda install -c conda-forge termcolor
-conda install -c anaconda pymssql
+
 ```
 
 5. Install **execution-framework** using the latest version on GitHub.
