@@ -1,3 +1,8 @@
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.image import MIMEImage
+from pathlib import Path
+
 import pandas as pd
 import numpy as np
 import datetime
@@ -125,7 +130,9 @@ def save_string_to_file(string: str, filepath: str):
     text_file.close()
 
 
-def send_mail(to: list, cc: list = [], subject: str = None, body: str = None):
+def send_mail(to: list, cc: list = [], subject: str = None, body: str = None,
+              filename: str = None,
+              ):
     """
     Send a mail to some destinatary
     :param to:
@@ -133,6 +140,7 @@ def send_mail(to: list, cc: list = [], subject: str = None, body: str = None):
     :param subject:
     :param body:
     :param bodyhtml:
+    :param filename: Full path of file to be attached to mail. Formats supported: txt, csv, png, jpg, jpeg
     :return:
     """
     msg = MIMEMultipart()
@@ -144,6 +152,23 @@ def send_mail(to: list, cc: list = [], subject: str = None, body: str = None):
 
     message = body
     msg.attach(MIMEText(message, 'html'))
+
+    filepath = Path(filename)
+    if not filepath.exists():
+        logger.error(f'Attachment file {filepath} does not exist')
+        raise Exception(f'Attachment file {filepath} does not exist')
+
+    if filepath.suffix in ['.txt', '.csv']:
+        msg.attach(MIMEText(open(filepath).read()))
+    elif filepath.suffix in ['.jpg', '.png', '.jpeg']:
+        with open(filepath, 'rb') as fp:
+            img = MIMEImage(fp.read())
+            img.add_header('Content-Disposition', 'attachment', filename=filepath.name)
+            msg.attach(img)
+    else:
+        logger.error(f'Attachment extension {filepath.suffix} not supported')
+        raise Exception(f'Attachment extension {filepath.suffix} not supported')
+
 
     # create server
     server = smtplib.SMTP('10.226.5.191')
