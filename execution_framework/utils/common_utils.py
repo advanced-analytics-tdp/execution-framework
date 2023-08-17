@@ -3,6 +3,7 @@ from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from pathlib import Path
 
+import requests
 import pandas as pd
 import numpy as np
 import datetime
@@ -132,6 +133,7 @@ def save_string_to_file(string: str, filepath: str):
 
 def send_mail(to: list, cc: list = [], subject: str = None, body: str = None,
               filename: str = None,
+              remitente: str = 'Analitica Avanzada BI'
               ):
     """
     Send a mail to some destinatary
@@ -145,7 +147,7 @@ def send_mail(to: list, cc: list = [], subject: str = None, body: str = None,
     """
     msg = MIMEMultipart()
     password = 'your_password'
-    msg['From'] = 'Analitica Avanzada BI <usrewa1@lnxapvlcmo0003.lnx.gp.inet>'
+    msg['From'] = f"{remitente} <usrewa1@lnxapvlcmo0003.lnx.gp.inet>"
     msg['To'] = ';'.join(to)
     msg['CC'] = ';'.join(cc)
     msg['Subject'] = subject
@@ -153,21 +155,27 @@ def send_mail(to: list, cc: list = [], subject: str = None, body: str = None,
     message = body
     msg.attach(MIMEText(message, 'html'))
 
-    filepath = Path(filename)
-    if not filepath.exists():
-        logger.error(f'Attachment file {filepath} does not exist')
-        raise Exception(f'Attachment file {filepath} does not exist')
-
-    if filepath.suffix in ['.txt', '.csv']:
-        msg.attach(MIMEText(open(filepath).read()))
-    elif filepath.suffix in ['.jpg', '.png', '.jpeg']:
-        with open(filepath, 'rb') as fp:
-            img = MIMEImage(fp.read())
-            img.add_header('Content-Disposition', 'attachment', filename=filepath.name)
-            msg.attach(img)
+    if filename is None:
+        logger.info(f"No attachment to include")
     else:
-        logger.error(f'Attachment extension {filepath.suffix} not supported')
-        raise Exception(f'Attachment extension {filepath.suffix} not supported')
+        filepath = Path(filename)
+        if not filepath.exists():
+            logger.error(f'Attachment file {filepath} does not exist')
+            raise Exception(f'Attachment file {filepath} does not exist')
+
+        if filepath.suffix in ['.txt', '.csv']:
+            with open(filepath) as fp:
+                txt = MIMEText(fp.read())
+                txt.add_header('Content-Disposition', 'attachment', filename=filepath.name)
+                msg.attach(txt)
+        elif filepath.suffix in ['.jpg', '.png', '.jpeg']:
+            with open(filepath, 'rb') as fp:
+                img = MIMEImage(fp.read())
+                img.add_header('Content-Disposition', 'attachment', filename=filepath.name)
+                msg.attach(img)
+        else:
+            logger.error(f'Attachment extension {filepath.suffix} not supported')
+            raise Exception(f'Attachment extension {filepath.suffix} not supported')
 
 
     # create server
@@ -190,4 +198,21 @@ def send_mail(to: list, cc: list = [], subject: str = None, body: str = None,
         raise
     except Exception as e:
         logger.error("Can't send email", exc_info=True)
+        raise
+
+
+def send_wsp(telefono, message, instance_id='instance45619', token='r82l48nzu6m6im34'):
+
+    try:
+        url = f"https://api.ultramsg.com/{instance_id}/messages/chat"
+        payload = f"token={token}&to=%2B51{telefono}&body={message}"
+        # print(payload)
+        payload = payload.encode('utf8').decode('iso-8859-1')
+        headers = {'content-type': 'application/x-www-form-urlencoded'}
+        response = requests.request("POST", url, data=payload, headers=headers)
+        logger.info(response.text)
+        logger.info(f"Whatsapp enviado satisfactoriamente al nro {telefono}")
+
+    except Exception as e:
+        logger.error("Can´t send whatsapp", exc_info=True)
         raise
